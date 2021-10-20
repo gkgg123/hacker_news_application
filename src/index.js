@@ -3,19 +3,21 @@ const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 const rootElement = document.querySelector('#root');
 const contentElement = document.createElement('div');
-ajax.open('GET', NEWS_URL, false);
-ajax.send();
+const GET_DATA_API = ( url ) => {
+  ajax.open('GET', url, false);
+  ajax.send();
+  return JSON.parse(ajax.response);
+}
+
 window.addEventListener('hashchange', (event) => {
   const id = location.hash.substr(1);
-  ajax.open('GET', CONTENT_URL.replace('@id', id), false);
-  ajax.send();
-  const newsContent = JSON.parse(ajax.response);
+  const newsContent = GET_DATA_API(CONTENT_URL.replace('@id', id));
   const title = document.createElement('h1');
   title.innerHTML = newsContent.title;
   contentElement.appendChild(title);
 
 })
-const newsFeed = JSON.parse(ajax.response);
+const newsFeed = GET_DATA_API(NEWS_URL);
 const ul = document.createElement('ul')
 ul.innerHTML = newsFeed.map(item => `<li>
                                         <a href="#${item.id}">
