@@ -29,8 +29,15 @@ function newsDetail() {
       <a href="#">목록으로</a>
   </div>`
 }
-window.addEventListener('hashchange', (event) => {
-  newsDetail();
-})
+function router() {
+  const routerPath = location.hash
+  if (routerPath === '') {
+    newsFeeds();
+  } else {
+    newsDetail();
+  }
 
-newsFeeds();
+}
+window.addEventListener('hashchange',router)
+
+router();
