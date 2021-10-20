@@ -18,11 +18,12 @@ window.addEventListener('hashchange', (event) => {
 
 })
 const newsFeed = GET_DATA_API(NEWS_URL);
-const ul = document.createElement('ul')
-ul.innerHTML = newsFeed.map(item => `<li>
-                                        <a href="#${item.id}">
-                                          ${item.title} (${item.comments_count}))
-                                        </a>
-                                      </li>`).join('');
-rootElement.appendChild(ul);
+const newsList = `<ul>
+${newsFeed.map(item => `<li>
+                          <a href="#${item.id}">
+                            ${item.title} (${item.comments_count}))
+                          </a>
+                        </li>`).join('')}
+</ul>`
+rootElement.innerHTML = newsList;
 rootElement.appendChild(contentElement);
