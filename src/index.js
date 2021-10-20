@@ -17,6 +17,10 @@ window.addEventListener('hashchange', (event) => {
 })
 const newsFeed = JSON.parse(ajax.response);
 const ul = document.createElement('ul')
-ul.innerHTML = newsFeed.map(item => `<li><a href="#${item.id}">${item.title} (${item.comments_count}))</a></li>`).join('');
+ul.innerHTML = newsFeed.map(item => `<li>
+                                        <a href="#${item.id}">
+                                          ${item.title} (${item.comments_count}))
+                                        </a>
+                                      </li>`).join('');
 rootElement.appendChild(ul);
 rootElement.appendChild(contentElement);
