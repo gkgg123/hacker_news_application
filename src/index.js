@@ -3,7 +3,6 @@ const NEWS_URL = 'https://api.hnpwa.com/v0/news/@currentPage.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 const rootElement = document.querySelector('#root');
 const contentElement = document.createElement('div');
-
 const store = {
   currentPage: 1
 };
@@ -14,20 +13,27 @@ const GET_DATA_API = ( url ) => {
   return JSON.parse(ajax.response);
 }
 function newsFeeds() {
+  let template = `
+  <div>
+    <h1>Hacker News</h1>
+    <ul>
+      {{__news_feed__}}
+    </ul>
+    <div>
+      <a href="#/page/{{__prev_page__}}">이전 페이지</a>
+      <a href="#/page/{{__next_page__}}">다음 페이지</a>
+    </div>
+  </div>`;
   const newsFeed = GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage));
-  const newsList = `<ul>
-  ${newsFeed.map(item => `<li>
+  const newsTemplate = newsFeed.map(item => `<li>
                             <a href="#/show/${item.id}">
                               ${item.title} (${item.comments_count}))
                             </a>
-                          </li>`).join('')}
-  </ul>
-  <div>
-    <a href="#/page/${store.currentPage >1? store.currentPage-1:1}">이전 페이지</a>
-    <a href="#/page/${store.currentPage+1}">다음 페이지</a>
-  </div>
-  `
-  rootElement.innerHTML = newsList;
+                          </li>`).join('')
+  template = template.replace('{{__news_feed__}}', newsTemplate);
+  template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1)
+  template = template.replace('{{__next_page__}}',store.currentPage+1)
+  rootElement.innerHTML = template;
 }
 function newsDetail() {
   const id = location.hash.substr(7);
@@ -47,6 +53,7 @@ function router() {
     newsDetail();
   } else {
     store.currentPage = Number(routerPath.substr(7));
+    console.log(store.currentPage);
     newsFeeds();
   }
 
