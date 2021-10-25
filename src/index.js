@@ -13,6 +13,14 @@ const GET_DATA_API = ( url ) => {
   ajax.send();
   return JSON.parse(ajax.response);
 }
+
+const make_read_feeds = (feeds) => {
+  return feeds.map((feed) => {
+    feed.read = false;
+    return feed
+  } )
+}
+
 function newsFeeds() {
   let template = `
   <div class="bg-gray-600 min-h-screen">
@@ -42,11 +50,11 @@ function newsFeeds() {
   if (store.feeds.has(store.currentPage)) {
     newsFeed = store.feeds.get(store.currentPage)
   } else {
-    newsFeed = GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage));
+    newsFeed = make_read_feeds(GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage)));
     store.feeds.set(store.currentPage,newsFeed)
   }
   const newsTemplate = newsFeed.map(item => `
-  <div class="p-6 ${item.read ? 'bg-red-500' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
+  <div class="p-6 ${item.read ? 'bg-indigo-300' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
   <div class="flex">
     <div class="flex-auto">
       <a href="#/show/${item.id}">${item.title}</a>  
@@ -71,6 +79,12 @@ function newsFeeds() {
 function newsDetail() {
   const id = location.hash.substr(7);
   const newsContent = GET_DATA_API(CONTENT_URL.replace('@id', id));
+  const current_newsFeed = store.feeds.get(store.currentPage);
+  current_newsFeed.forEach((feed) => {
+    if (feed.id === Number(id)) {
+      feed.read = true;
+    }
+  })
   let template = `
   <div class="bg-gray-600 min-h-screen pb-8">
       <div class="bg-white text-xl">
@@ -93,7 +107,7 @@ function newsDetail() {
         <div class="text-gray-400 h-20">
           ${newsContent.content}
         </div>
-
+        <span class="text-blue-800 text-2xl font-bold bg-gray-100">Comments</span>
         {{__comments__}}
 
       </div>
@@ -123,7 +137,6 @@ function newsDetail() {
   rootElement.innerHTML = template;
 }
 function router() {
-  console.log(store.feeds)
   const routerPath = location.hash
   if (routerPath === '') {
     newsFeeds();
@@ -131,7 +144,6 @@ function router() {
     newsDetail();
   } else {
     store.currentPage = Number(routerPath.substr(7));
-    console.log(store.currentPage);
     newsFeeds();
   }
 
