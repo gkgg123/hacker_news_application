@@ -4,7 +4,8 @@ const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 const rootElement = document.querySelector('#root');
 const contentElement = document.createElement('div');
 const store = {
-  currentPage: 1
+  currentPage: 1,
+  feeds : new Map()
 };
 
 const GET_DATA_API = ( url ) => {
@@ -37,7 +38,13 @@ function newsFeeds() {
   </div>
 </div>
   `;
-  const newsFeed = GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage));
+  let newsFeed = [];
+  if (store.feeds.has(store.currentPage)) {
+    newsFeed = store.feeds.get(store.currentPage)
+  } else {
+    newsFeed = GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage));
+    store.feeds.set(store.currentPage,newsFeed)
+  }
   const newsTemplate = newsFeed.map(item => `
   <div class="p-6 ${item.read ? 'bg-red-500' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
   <div class="flex">
@@ -116,6 +123,7 @@ function newsDetail() {
   rootElement.innerHTML = template;
 }
 function router() {
+  console.log(store.feeds)
   const routerPath = location.hash
   if (routerPath === '') {
     newsFeeds();
