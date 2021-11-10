@@ -7,7 +7,6 @@ const store = {
   currentPage: 1,
   feeds : new Map()
 };
-
 const GET_DATA_API = ( url ) => {
   ajax.open('GET', url, false);
   ajax.send();
