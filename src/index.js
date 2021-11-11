@@ -4,14 +4,22 @@ const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 const rootElement = document.querySelector('#root');
 const contentElement = document.createElement('div');
 const store = {
-  currentPage: 1
+  currentPage: 1,
+  feeds : new Map()
 };
-
 const GET_DATA_API = ( url ) => {
   ajax.open('GET', url, false);
   ajax.send();
   return JSON.parse(ajax.response);
 }
+
+const make_read_feeds = (feeds) => {
+  return feeds.map((feed) => {
+    feed.read = false;
+    return feed
+  } )
+}
+
 function newsFeeds() {
   let template = `
   <div class="bg-gray-600 min-h-screen">
@@ -37,9 +45,15 @@ function newsFeeds() {
   </div>
 </div>
   `;
-  const newsFeed = GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage));
+  let newsFeed = [];
+  if (store.feeds.has(store.currentPage)) {
+    newsFeed = store.feeds.get(store.currentPage)
+  } else {
+    newsFeed = make_read_feeds(GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage)));
+    store.feeds.set(store.currentPage,newsFeed)
+  }
   const newsTemplate = newsFeed.map(item => `
-  <div class="p-6 ${item.read ? 'bg-red-500' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
+  <div class="p-6 ${item.read ? 'bg-indigo-300' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
   <div class="flex">
     <div class="flex-auto">
       <a href="#/show/${item.id}">${item.title}</a>  
@@ -64,6 +78,12 @@ function newsFeeds() {
 function newsDetail() {
   const id = location.hash.substr(7);
   const newsContent = GET_DATA_API(CONTENT_URL.replace('@id', id));
+  const current_newsFeed = store.feeds.get(store.currentPage);
+  current_newsFeed.forEach((feed) => {
+    if (feed.id === Number(id)) {
+      feed.read = true;
+    }
+  })
   let template = `
   <div class="bg-gray-600 min-h-screen pb-8">
       <div class="bg-white text-xl">
@@ -86,7 +106,7 @@ function newsDetail() {
         <div class="text-gray-400 h-20">
           ${newsContent.content}
         </div>
-
+        <span class="text-blue-800 text-2xl font-bold bg-gray-100">Comments</span>
         {{__comments__}}
 
       </div>
@@ -123,7 +143,6 @@ function router() {
     newsDetail();
   } else {
     store.currentPage = Number(routerPath.substr(7));
-    console.log(store.currentPage);
     newsFeeds();
   }
 
