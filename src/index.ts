@@ -1,7 +1,8 @@
 const ajax = new XMLHttpRequest();
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/@currentPage.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
-const rootElement = document.querySelector('#root');
+// Element의 subset이 HTMLElement이다.
+const rootElement : HTMLElement|null = document.querySelector('#root');
 const contentElement = document.createElement('div');
 const store = {
   currentPage: 1,
