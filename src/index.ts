@@ -1,10 +1,25 @@
-const ajax : XMLHttpRequest = new XMLHttpRequest();
+type Store = {
+  currentPage: number;
+  feeds: Map<number,NewsFeed[]>
+}
+type NewsFeed = {
+  id: Number;
+  comment_count: number;
+  url: string;
+  user: string;
+  time_ago: string;
+  points: number;
+  title: string;
+  read?: boolean;
+}
+
+const ajax: XMLHttpRequest = new XMLHttpRequest();
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/@currentPage.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 // Element의 subset이 HTMLElement이다.
 const rootElement : HTMLElement|null = document.querySelector('#root');
 const contentElement = document.createElement('div');
-const store = {
+const store : Store = {
   currentPage: 1,
   feeds : new Map()
 };
@@ -46,9 +61,9 @@ function newsFeeds() {
   </div>
 </div>
   `;
-  let newsFeed = [];
+  let newsFeed :NewsFeed[] = [];
   if (store.feeds.has(store.currentPage)) {
-    newsFeed = store.feeds.get(store.currentPage)
+    newsFeed = store.feeds.get(store.currentPage)??[]
   } else {
     newsFeed = make_read_feeds(GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage)));
     store.feeds.set(store.currentPage,newsFeed)
