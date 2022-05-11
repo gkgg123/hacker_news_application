@@ -4,7 +4,7 @@ type Store = {
 }
 type NewsFeed = {
   id: Number;
-  comment_count: number;
+  comments_count: number;
   url: string;
   user: string;
   time_ago: string;
@@ -94,7 +94,7 @@ function newsFeeds() {
 function newsDetail() {
   const id = location.hash.substr(7);
   const newsContent = GET_DATA_API(CONTENT_URL.replace('@id', id));
-  const current_newsFeed = store.feeds.get(store.currentPage);
+  const current_newsFeed : NewsFeed[] = store.feeds.get(store.currentPage)??[];
   current_newsFeed.forEach((feed) => {
     if (feed.id === Number(id)) {
       feed.read = true;
