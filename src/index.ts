@@ -2,15 +2,28 @@ type Store = {
   currentPage: number;
   feeds: Map<number,NewsFeed[]>
 }
-type NewsFeed = {
-  id: Number;
-  comments_count: number;
+type News = {
+  id: number;
+  time_ago: string;
+  title: string;
   url: string;
   user: string;
-  time_ago: string;
+  content: string;
+}
+
+type NewsFeed = News &{
+  comments_count: number;
   points: number;
-  title: string;
   read?: boolean;
+}
+
+type NewsDetail = News & {
+  comments: NewsComment[];
+}
+
+type NewsComment = News& {
+  comments: NewsComment[];
+  level: number;
 }
 
 const ajax: XMLHttpRequest = new XMLHttpRequest();
@@ -23,20 +36,20 @@ const store : Store = {
   currentPage: 1,
   feeds : new Map()
 };
-const GET_DATA_API = ( url ) => {
+const GET_DATA_API = <AjaxResponse>( url : string ) : AjaxResponse=> {
   ajax.open('GET', url, false);
   ajax.send();
   return JSON.parse(ajax.response);
 }
 
-const make_read_feeds = (feeds) => {
+const make_read_feeds = (feeds : NewsFeed[]) : NewsFeed[]=> {
   return feeds.map((feed) => {
     feed.read = false;
     return feed
   } )
 }
 
-function updateView(html) {
+function updateView(html: string) :void {
   if (rootElement) {
     rootElement.innerHTML = html
   } else {
@@ -44,7 +57,30 @@ function updateView(html) {
   }
 }
 
-function newsFeeds() {
+
+function makeComment(comments :NewsComment[]) : string {
+  const commentString = [];
+  for (let i = 0; i < comments.length; i++){
+    const comment : NewsComment = comments[i]
+    commentString.push(
+        `
+        <div style="padding-left : ${comment.level*40}px" class="mt-4">
+          <div class="text-gray-400">
+            <i class="fa fa-sort-up mr-2"></i>
+            <strong>${comment.user}</strong> ${comment.time_ago}
+          </div>
+          <p class="text-gray-700">${comment.content}</p>
+        </div>  
+        `
+    )
+    if (comments[i].comments.length > 0) {
+      commentString.push(makeComment(comment.comments));
+    }
+  }
+  return commentString.join('');
+}
+
+function newsFeeds() :void {
   let template = `
   <div class="bg-gray-600 min-h-screen">
   <div class="bg-white text-xl">
@@ -73,7 +109,7 @@ function newsFeeds() {
   if (store.feeds.has(store.currentPage)) {
     newsFeed = store.feeds.get(store.currentPage)??[]
   } else {
-    newsFeed = make_read_feeds(GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage)));
+    newsFeed = make_read_feeds(GET_DATA_API<NewsFeed[]>(NEWS_URL.replace('@currentPage', String(store.currentPage))));
     store.feeds.set(store.currentPage,newsFeed)
   }
   const newsTemplate = newsFeed.map(item => `
@@ -95,13 +131,13 @@ function newsFeeds() {
   </div>
 </div>   `).join('')
   template = template.replace('{{__news_feed__}}', newsTemplate);
-  template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1)
-  template = template.replace('{{__next_page__}}', store.currentPage + 1)
+  template = template.replace('{{__prev_page__}}', String(store.currentPage > 1 ? store.currentPage - 1 : 1))
+  template = template.replace('{{__next_page__}}', String(store.currentPage + 1))
   updateView(template)
 }
-function newsDetail() {
+function newsDetail() :void {
   const id = location.hash.substr(7);
-  const newsContent = GET_DATA_API(CONTENT_URL.replace('@id', id));
+  const newsContent = GET_DATA_API<NewsDetail>(CONTENT_URL.replace('@id', id));
   const current_newsFeed : NewsFeed[] = store.feeds.get(store.currentPage)??[];
   current_newsFeed.forEach((feed) => {
     if (feed.id === Number(id)) {
@@ -136,30 +172,10 @@ function newsDetail() {
       </div>
     </div>`;
   
-  function makeComment(comments, stack = 0) {
-    const commentString = [];
-    for (let i = 0; i < comments.length; i++){
-      commentString.push(
-          `
-          <div style="padding-left : ${stack*40}px" class="mt-4">
-            <div class="text-gray-400">
-              <i class="fa fa-sort-up mr-2"></i>
-              <strong>${comments[i].user}</strong> ${comments[i].time_ago}
-            </div>
-            <p class="text-gray-700">${comments[i].content}</p>
-          </div>  
-          `
-      )
-      if (comments[i].comments.length > 0) {
-        commentString.push(makeComment(comments[i].comments, stack + 1));
-      }
-    }
-    return commentString.join('');
-  }
   template = template.replace(`{{__comments__}}`, makeComment(newsContent.comments));
   updateView(template)
 }
-function router() {
+function router() : void {
   const routerPath = location.hash
   if (routerPath === '') {
     newsFeeds();
