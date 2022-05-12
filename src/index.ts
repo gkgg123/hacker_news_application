@@ -36,12 +36,42 @@ const store : Store = {
   currentPage: 1,
   feeds : new Map()
 };
-const GET_DATA_API = <AjaxResponse>( url : string ) : AjaxResponse=> {
-  ajax.open('GET', url, false);
-  ajax.send();
-  return JSON.parse(ajax.response);
+
+function applyAPiMixins(targetClass : any, baseClasses:any[]) :void {
+  baseClasses.forEach(baseClass => {
+    Object.getOwnPropertyNames(baseClass.prototype).forEach(name => {
+      const descriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, name);
+      if (descriptor) {
+        Object.defineProperty(targetClass.prototype, name, descriptor);
+      }
+    })
+  })
+}
+class Api {
+  getRequest<AjaxResponse>(url: string): AjaxResponse {
+    const ajax = new XMLHttpRequest();
+    ajax.open('GET', url, false);
+    ajax.send();
+    return JSON.parse(ajax.response)
+  }
 }
 
+class NewsFeedApi {
+  getData(currentPage : number): NewsFeed[] {
+    return this.getRequest<NewsFeed[]>(NEWS_URL.replace('@currentPage', String(currentPage)));
+  }
+}
+
+
+class NewsDetailApi{
+  getData(id:string): NewsDetail {
+    return this.getRequest<NewsDetail>(CONTENT_URL.replace('@id', id));
+  }
+}
+interface NewsFeedApi extends Api { };
+interface NewsDetailApi extends Api { };
+applyAPiMixins(NewsFeedApi, [Api]);
+applyAPiMixins(NewsDetailApi, [Api]);
 const make_read_feeds = (feeds : NewsFeed[]) : NewsFeed[]=> {
   return feeds.map((feed) => {
     feed.read = false;
@@ -80,7 +110,8 @@ function makeComment(comments :NewsComment[]) : string {
   return commentString.join('');
 }
 
-function newsFeeds() :void {
+function newsFeeds(): void {
+  const api = new NewsFeedApi();
   let template = `
   <div class="bg-gray-600 min-h-screen">
   <div class="bg-white text-xl">
@@ -109,7 +140,7 @@ function newsFeeds() :void {
   if (store.feeds.has(store.currentPage)) {
     newsFeed = store.feeds.get(store.currentPage)??[]
   } else {
-    newsFeed = make_read_feeds(GET_DATA_API<NewsFeed[]>(NEWS_URL.replace('@currentPage', String(store.currentPage))));
+    newsFeed = make_read_feeds(api.getData(store.currentPage));
     store.feeds.set(store.currentPage,newsFeed)
   }
   const newsTemplate = newsFeed.map(item => `
@@ -137,7 +168,8 @@ function newsFeeds() :void {
 }
 function newsDetail() :void {
   const id = location.hash.substr(7);
-  const newsContent = GET_DATA_API<NewsDetail>(CONTENT_URL.replace('@id', id));
+  const api = new NewsDetailApi()
+  const newsContent = api.getData(id);
   const current_newsFeed : NewsFeed[] = store.feeds.get(store.currentPage)??[];
   current_newsFeed.forEach((feed) => {
     if (feed.id === Number(id)) {
