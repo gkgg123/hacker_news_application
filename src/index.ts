@@ -1,9 +1,25 @@
-const ajax = new XMLHttpRequest();
+type Store = {
+  currentPage: number;
+  feeds: Map<number,NewsFeed[]>
+}
+type NewsFeed = {
+  id: Number;
+  comments_count: number;
+  url: string;
+  user: string;
+  time_ago: string;
+  points: number;
+  title: string;
+  read?: boolean;
+}
+
+const ajax: XMLHttpRequest = new XMLHttpRequest();
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/@currentPage.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
-const rootElement = document.querySelector('#root');
+// Element의 subset이 HTMLElement이다.
+const rootElement : HTMLElement|null = document.querySelector('#root');
 const contentElement = document.createElement('div');
-const store = {
+const store : Store = {
   currentPage: 1,
   feeds : new Map()
 };
@@ -18,6 +34,14 @@ const make_read_feeds = (feeds) => {
     feed.read = false;
     return feed
   } )
+}
+
+function updateView(html) {
+  if (rootElement) {
+    rootElement.innerHTML = html
+  } else {
+    console.error('최상위 컨테이너가 없어 UI를 진행 할 수 없습니다.')
+  }
 }
 
 function newsFeeds() {
@@ -45,9 +69,9 @@ function newsFeeds() {
   </div>
 </div>
   `;
-  let newsFeed = [];
+  let newsFeed :NewsFeed[] = [];
   if (store.feeds.has(store.currentPage)) {
-    newsFeed = store.feeds.get(store.currentPage)
+    newsFeed = store.feeds.get(store.currentPage)??[]
   } else {
     newsFeed = make_read_feeds(GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage)));
     store.feeds.set(store.currentPage,newsFeed)
@@ -72,13 +96,13 @@ function newsFeeds() {
 </div>   `).join('')
   template = template.replace('{{__news_feed__}}', newsTemplate);
   template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1)
-  template = template.replace('{{__next_page__}}',store.currentPage+1)
-  rootElement.innerHTML = template;
+  template = template.replace('{{__next_page__}}', store.currentPage + 1)
+  updateView(template)
 }
 function newsDetail() {
   const id = location.hash.substr(7);
   const newsContent = GET_DATA_API(CONTENT_URL.replace('@id', id));
-  const current_newsFeed = store.feeds.get(store.currentPage);
+  const current_newsFeed : NewsFeed[] = store.feeds.get(store.currentPage)??[];
   current_newsFeed.forEach((feed) => {
     if (feed.id === Number(id)) {
       feed.read = true;
@@ -133,7 +157,7 @@ function newsDetail() {
     return commentString.join('');
   }
   template = template.replace(`{{__comments__}}`, makeComment(newsContent.comments));
-  rootElement.innerHTML = template;
+  updateView(template)
 }
 function router() {
   const routerPath = location.hash
