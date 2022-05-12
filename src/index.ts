@@ -36,7 +36,7 @@ const store : Store = {
   currentPage: 1,
   feeds : new Map()
 };
-const GET_DATA_API = ( url : string ) : NewsFeed[] | NewsDetail => {
+const GET_DATA_API = <AjaxResponse>( url : string ) : AjaxResponse=> {
   ajax.open('GET', url, false);
   ajax.send();
   return JSON.parse(ajax.response);
@@ -86,7 +86,7 @@ function newsFeeds() {
   if (store.feeds.has(store.currentPage)) {
     newsFeed = store.feeds.get(store.currentPage)??[]
   } else {
-    newsFeed = make_read_feeds(GET_DATA_API(NEWS_URL.replace('@currentPage', store.currentPage)));
+    newsFeed = make_read_feeds(GET_DATA_API<NewsFeed[]>(NEWS_URL.replace('@currentPage', store.currentPage)));
     store.feeds.set(store.currentPage,newsFeed)
   }
   const newsTemplate = newsFeed.map(item => `
@@ -114,7 +114,7 @@ function newsFeeds() {
 }
 function newsDetail() {
   const id = location.hash.substr(7);
-  const newsContent = GET_DATA_API(CONTENT_URL.replace('@id', id));
+  const newsContent = GET_DATA_API<NewsDetail>(CONTENT_URL.replace('@id', id));
   const current_newsFeed : NewsFeed[] = store.feeds.get(store.currentPage)??[];
   current_newsFeed.forEach((feed) => {
     if (feed.id === Number(id)) {
