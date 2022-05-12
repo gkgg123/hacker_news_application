@@ -2,33 +2,27 @@ type Store = {
   currentPage: number;
   feeds: Map<number,NewsFeed[]>
 }
-type NewsFeed = {
-  id: Number;
-  comments_count: number;
+type News = {
+  id: number;
+  time_ago: string;
+  title: string;
   url: string;
   user: string;
-  time_ago: string;
+  content: string;
+}
+
+type NewsFeed = News &{
+  comments_count: number;
   points: number;
-  title: string;
   read?: boolean;
 }
 
-type NewsDetail = {
-  id: number;
-  time_ago: string;
-  title: string;
-  url: string;
-  user: string;
-  content: string;
-  comments: [];
+type NewsDetail = News & {
+  comments: NewsComment[];
 }
 
-type NewsComment = {
-  id: number;
-  user: string;
-  time_ago: string;
-  content: string;
-  comments: [];
+type NewsComment = News& {
+  comments: NewsComment[];
   level: number;
 }
 
