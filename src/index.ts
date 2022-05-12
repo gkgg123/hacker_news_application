@@ -62,11 +62,6 @@ class NewsDetailApi extends Api {
     return this.getRequest<NewsDetail>();
   }
 }
-const GET_DATA_API = <AjaxResponse>( url : string ) : AjaxResponse=> {
-  ajax.open('GET', url, false);
-  ajax.send();
-  return JSON.parse(ajax.response);
-}
 
 const make_read_feeds = (feeds : NewsFeed[]) : NewsFeed[]=> {
   return feeds.map((feed) => {
