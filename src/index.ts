@@ -3,27 +3,27 @@ interface Store {
   feeds: Map<number,NewsFeed[]>
 }
 interface News {
-  id: number;
-  time_ago: string;
-  title: string;
-  url: string;
-  user: string;
-  content: string;
+  readonly id: number;
+  readonly time_ago: string;
+  readonly title: string;
+  readonly url: string;
+  readonly user: string;
+  readonly content: string;
 }
 
 interface NewsFeed extends News {
-  comments_count: number;
-  points: number;
+  readonly comments_count: number;
+  readonly points: number;
   read?: boolean;
 }
 
 interface NewsDetail extends News {
-  comments: NewsComment[];
+  readonly comments: NewsComment[];
 }
 
 interface NewsComment extends News {
-  comments: NewsComment[];
-  level: number;
+  readonly comments: NewsComment[];
+  readonly level: number;
 }
 
 const ajax: XMLHttpRequest = new XMLHttpRequest();
