@@ -1,8 +1,8 @@
-type Store = {
+interface Store {
   currentPage: number;
   feeds: Map<number,NewsFeed[]>
 }
-type News = {
+interface News {
   id: number;
   time_ago: string;
   title: string;
@@ -11,17 +11,17 @@ type News = {
   content: string;
 }
 
-type NewsFeed = News &{
+interface NewsFeed extends News {
   comments_count: number;
   points: number;
   read?: boolean;
 }
 
-type NewsDetail = News & {
+interface NewsDetail extends News {
   comments: NewsComment[];
 }
 
-type NewsComment = News& {
+interface NewsComment extends News {
   comments: NewsComment[];
   level: number;
 }
