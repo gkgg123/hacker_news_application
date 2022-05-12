@@ -36,7 +36,7 @@ const store : Store = {
   currentPage: 1,
   feeds : new Map()
 };
-const GET_DATA_API = ( url : string )  => {
+const GET_DATA_API = ( url : string ) : NewsFeed[] | NewsDetail => {
   ajax.open('GET', url, false);
   ajax.send();
   return JSON.parse(ajax.response);
