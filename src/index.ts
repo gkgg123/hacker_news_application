@@ -13,6 +13,25 @@ type NewsFeed = {
   read?: boolean;
 }
 
+type NewsDetail = {
+  id: number;
+  time_ago: string;
+  title: string;
+  url: string;
+  user: string;
+  content: string;
+  comments: [];
+}
+
+type NewsComment = {
+  id: number;
+  user: string;
+  time_ago: string;
+  content: string;
+  comments: [];
+  level: number;
+}
+
 const ajax: XMLHttpRequest = new XMLHttpRequest();
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/@currentPage.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
@@ -23,7 +42,7 @@ const store : Store = {
   currentPage: 1,
   feeds : new Map()
 };
-const GET_DATA_API = ( url ) => {
+const GET_DATA_API = ( url : string )  => {
   ajax.open('GET', url, false);
   ajax.send();
   return JSON.parse(ajax.response);
