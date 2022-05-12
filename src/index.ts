@@ -36,6 +36,14 @@ const make_read_feeds = (feeds) => {
   } )
 }
 
+function updateView(html) {
+  if (rootElement) {
+    rootElement.innerHTML = html
+  } else {
+    console.error('최상위 컨테이너가 없어 UI를 진행 할 수 없습니다.')
+  }
+}
+
 function newsFeeds() {
   let template = `
   <div class="bg-gray-600 min-h-screen">
@@ -88,8 +96,8 @@ function newsFeeds() {
 </div>   `).join('')
   template = template.replace('{{__news_feed__}}', newsTemplate);
   template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage - 1 : 1)
-  template = template.replace('{{__next_page__}}',store.currentPage+1)
-  rootElement.innerHTML = template;
+  template = template.replace('{{__next_page__}}', store.currentPage + 1)
+  updateView(template)
 }
 function newsDetail() {
   const id = location.hash.substr(7);
@@ -149,7 +157,7 @@ function newsDetail() {
     return commentString.join('');
   }
   template = template.replace(`{{__comments__}}`, makeComment(newsContent.comments));
-  rootElement.innerHTML = template;
+  updateView(template)
 }
 function router() {
   const routerPath = location.hash
