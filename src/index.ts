@@ -36,6 +36,14 @@ const store : Store = {
   currentPage: 1,
   feeds : new Map()
 };
+class Api {
+  url: string;
+  ajax: XMLHttpRequest;
+  constructor(url:string) {
+    this.url = url;
+    this.ajax = new XMLHttpRequest();
+  }
+}
 const GET_DATA_API = <AjaxResponse>( url : string ) : AjaxResponse=> {
   ajax.open('GET', url, false);
   ajax.send();
