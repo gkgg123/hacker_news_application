@@ -78,6 +78,14 @@ class View {
   constructor() {
     
   }
+
+  updateView(html: string) :void {
+    if (rootElement) {
+      rootElement.innerHTML = html
+    } else {
+      console.error('최상위 컨테이너가 없어 UI를 진행 할 수 없습니다.')
+    }
+  }
 }
 class NewsFeedView extends View{
   constructor() {
@@ -216,13 +224,7 @@ class NewsDetailView extends View{
   }
 }
 
-function updateView(html: string) :void {
-  if (rootElement) {
-    rootElement.innerHTML = html
-  } else {
-    console.error('최상위 컨테이너가 없어 UI를 진행 할 수 없습니다.')
-  }
-}
+
 
 function router() : void {
   const routerPath = location.hash
