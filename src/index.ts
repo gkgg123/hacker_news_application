@@ -75,16 +75,19 @@ applyAPiMixins(NewsDetailApi, [Api]);
 
 
 class View {
-  constructor() {
-    
+  template: string;
+  container: HTMLElement;
+  constructor(containerId : string, template : string) {
+    const containerElement = document.getElementById(containerId);
+    if (!containerElement) {
+      throw '최상위 컨테이너가 없어 UI를 진행하지 못합니다.'
+    }
+    this.container = containerElement;
+    this.template = template;
   }
 
-  updateView(html: string) :void {
-    if (rootElement) {
-      rootElement.innerHTML = html
-    } else {
-      console.error('최상위 컨테이너가 없어 UI를 진행 할 수 없습니다.')
-    }
+  updateView(html: string): void {
+    this.container.innerHTML = html;
   }
 }
 class NewsFeedView extends View{
