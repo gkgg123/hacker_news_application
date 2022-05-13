@@ -91,23 +91,9 @@ class View {
   }
 }
 class NewsFeedView extends View{
-  constructor() {
-    const api = new NewsFeedApi();
-    let newsFeed :NewsFeed[] = [];
-    if (store.feeds.has(store.currentPage)) {
-      newsFeed = store.feeds.get(store.currentPage)??[]
-    } else {
-      newsFeed = make_read_feeds(api.getData(store.currentPage));
-      store.feeds.set(store.currentPage,newsFeed)
-    }
-  }
-  make_read_feeds(feeds : NewsFeed[]) : NewsFeed[]{
-    return feeds.map((feed) => {
-      feed.read = false;
-      return feed
-    } )
-  }
-  render() {
+  api: NewsFeedApi;
+  feeds: NewsFeed[];
+  constructor(containerId: string) {
     let template = `
     <div class="bg-gray-600 min-h-screen">
     <div class="bg-white text-xl">
@@ -132,6 +118,24 @@ class NewsFeedView extends View{
     </div>
   </div>
     `;
+    super(containerId,template)
+    this.api = new NewsFeedApi();
+    this.feeds = [];
+    if (store.feeds.has(store.currentPage)) {
+      this.feeds = store.feeds.get(store.currentPage)??[]
+    } else {
+      this.feeds = this.api.getData(store.currentPage);
+      this.makeFeeds();
+      store.feeds.set(store.currentPage,this.feeds)
+    }
+  }
+  makeFeeds(){
+  this.feeds.forEach((feed,index) => {
+      this.feeds[index].read = false;
+    } )
+  }
+  render() {
+
     const newsTemplate = newsFeed.map(item => `
     <div class="p-6 ${item.read ? 'bg-indigo-300' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
     <div class="flex">
