@@ -73,7 +73,13 @@ interface NewsDetailApi extends Api { };
 applyAPiMixins(NewsFeedApi, [Api]);
 applyAPiMixins(NewsDetailApi, [Api]);
 
-class NewsFeedView {
+
+class View {
+  constructor() {
+    
+  }
+}
+class NewsFeedView extends View{
   constructor() {
     const api = new NewsFeedApi();
     let newsFeed :NewsFeed[] = [];
@@ -142,7 +148,7 @@ class NewsFeedView {
 }
 
 
-class NewsDetailView{
+class NewsDetailView extends View{
   constructor() {
     const id = location.hash.substr(7);
     const api = new NewsDetailApi()
