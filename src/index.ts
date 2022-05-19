@@ -77,6 +77,7 @@ applyAPiMixins(NewsDetailApi, [Api]);
 class View {
   template: string;
   container: HTMLElement;
+  htmlList: string[];
   constructor(containerId : string, template : string) {
     const containerElement = document.getElementById(containerId);
     if (!containerElement) {
@@ -84,10 +85,17 @@ class View {
     }
     this.container = containerElement;
     this.template = template;
+    this.htmlList = [];
   }
 
   updateView(html: string): void {
     this.container.innerHTML = html;
+  }
+  addHtml(htmlString: string): void{
+    this.htmlList.push(htmlString)
+  }
+  getHtml(): string {
+    return this.htmlList.join()
   }
 }
 class NewsFeedView extends View{
@@ -117,7 +125,7 @@ class NewsFeedView extends View{
       {{__news_feed__}}        
     </div>
   </div>
-    `;
+    `; 
     super(containerId,template)
     this.api = new NewsFeedApi();
     this.feeds = [];
@@ -136,8 +144,8 @@ class NewsFeedView extends View{
   }
   render() {
 
-    const newsTemplate = newsFeed.map(item => `
-    <div class="p-6 ${item.read ? 'bg-indigo-300' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
+    this.feeds.forEach(item => this.addHtml(
+      `<div class="p-6 ${item.read ? 'bg-indigo-300' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
     <div class="flex">
       <div class="flex-auto">
         <a href="#/show/${item.id}">${item.title}</a>  
@@ -153,12 +161,12 @@ class NewsFeedView extends View{
         <div><i class="far fa-clock mr-1"></i>${item.time_ago}</div>
       </div>  
     </div>
-  </div>   `).join('')
-    template = template.replace('{{__news_feed__}}', newsTemplate);
-    template = template.replace('{{__prev_page__}}', String(store.currentPage > 1 ? store.currentPage - 1 : 1))
-    template = template.replace('{{__next_page__}}', String(store.currentPage + 1))
-    updateView(template)
-    
+  </div>`)
+    )
+    this.template = this.template.replace('{{__news_feed__}}', this.getHtml());
+    this.template = this.template.replace('{{__prev_page__}}', String(store.currentPage > 1 ? store.currentPage - 1 : 1))
+    this.template = this.template.replace('{{__next_page__}}', String(store.currentPage + 1))
+    this.updateView(this.template)
   }
 }
 
