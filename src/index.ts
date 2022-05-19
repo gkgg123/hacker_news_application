@@ -144,24 +144,27 @@ class NewsFeedView extends View{
   }
   render() {
 
-    this.feeds.forEach(item => this.addHtml(
-      `<div class="p-6 ${item.read ? 'bg-indigo-300' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
-    <div class="flex">
-      <div class="flex-auto">
-        <a href="#/show/${item.id}">${item.title}</a>  
+    this.feeds.forEach(item => {
+      const { id, title, comments_count, user, points, time_ago, read } = item;
+      this.addHtml(
+        `<div class="p-6 ${read ? 'bg-indigo-300' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
+      <div class="flex">
+        <div class="flex-auto">
+          <a href="#/show/${id}">${title}</a>  
+        </div>
+        <div class="text-center text-sm">
+          <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${comments_count}</div>
+        </div>
       </div>
-      <div class="text-center text-sm">
-        <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${item.comments_count}</div>
+      <div class="flex mt-3">
+        <div class="grid grid-cols-3 text-sm text-gray-500">
+          <div><i class="fas fa-user mr-1"></i>${user}</div>
+          <div><i class="fas fa-heart mr-1"></i>${points}</div>
+          <div><i class="far fa-clock mr-1"></i>${time_ago}</div>
+        </div>  
       </div>
-    </div>
-    <div class="flex mt-3">
-      <div class="grid grid-cols-3 text-sm text-gray-500">
-        <div><i class="fas fa-user mr-1"></i>${item.user}</div>
-        <div><i class="fas fa-heart mr-1"></i>${item.points}</div>
-        <div><i class="far fa-clock mr-1"></i>${item.time_ago}</div>
-      </div>  
-    </div>
-  </div>`)
+    </div>`)
+    } 
     )
     this.template = this.template.replace('{{__news_feed__}}', this.getHtml());
     this.template = this.template.replace('{{__prev_page__}}', String(store.currentPage > 1 ? store.currentPage - 1 : 1))
@@ -172,16 +175,7 @@ class NewsFeedView extends View{
 
 
 class NewsDetailView extends View{
-  constructor() {
-    const id = location.hash.substr(7);
-    const api = new NewsDetailApi()
-    const newsContent = api.getData(id);
-    const current_newsFeed : NewsFeed[] = store.feeds.get(store.currentPage)??[];
-    current_newsFeed.forEach((feed) => {
-      if (feed.id === Number(id)) {
-        feed.read = true;
-      }
-    })
+  constructor(containerId : string) {
     let template = `
     <div class="bg-gray-600 min-h-screen pb-8">
         <div class="bg-white text-xl">
@@ -209,9 +203,7 @@ class NewsDetailView extends View{
   
         </div>
       </div>`;
-    
-    template = template.replace(`{{__comments__}}`, makeComment(newsContent.comments));
-    updateView(template)
+    super(containerId,template)
   }
   makeComment(comments :NewsComment[]) : string {
     const commentString = [];
@@ -229,13 +221,23 @@ class NewsDetailView extends View{
           `
       )
       if (comments[i].comments.length > 0) {
-        commentString.push(makeComment(comment.comments));
+        commentString.push(this.makeComment(comment.comments));
       }
     }
     return commentString.join('');
   }
   render() {
-    
+    const id = location.hash.substr(7);
+    const api = new NewsDetailApi()
+    const newsContent = api.getData(id);
+    const current_newsFeed : NewsFeed[] = store.feeds.get(store.currentPage)??[];
+    current_newsFeed.forEach((feed) => {
+      if (feed.id === Number(id)) {
+        feed.read = true;
+      }
+    })
+    this.template = this.template.replace(`{{__comments__}}`, this.makeComment(newsContent.comments));
+    this.updateView(this.template)
   }
 }
 
