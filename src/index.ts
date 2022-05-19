@@ -26,6 +26,11 @@ interface NewsComment extends News {
   readonly level: number;
 }
 
+interface RouteInfo {
+  path: string,
+  page : View
+}
+
 const ajax: XMLHttpRequest = new XMLHttpRequest();
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/@currentPage.json';
 const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
@@ -74,11 +79,11 @@ applyAPiMixins(NewsFeedApi, [Api]);
 applyAPiMixins(NewsDetailApi, [Api]);
 
 
-class View {
-  template: string;
-  container: HTMLElement;
-  renderTemplate: string;
-  htmlList: string[];
+abstract class View {
+  private template: string;
+  private container: HTMLElement;
+  private renderTemplate: string;
+  private htmlList: string[];
   constructor(containerId : string, template : string) {
     const containerElement = document.getElementById(containerId);
     if (!containerElement) {
@@ -94,21 +99,52 @@ class View {
     this.container.innerHTML = this.renderTemplate;
     this.renderTemplate = this.template;
   }
-  addHtml(htmlString: string): void{
+  protected addHtml(htmlString: string): void{
     this.htmlList.push(htmlString);
   }
-  getHtml(): string {
+  protected getHtml(): string {
     const snapshot = this.htmlList.join('');
     this.clearHtml();
     return snapshot;
   }
-  clearHtml(): void {
+  private clearHtml(): void {
     this.htmlList = [];
   }
-  setTemlateData(key: string, value: string): void{
+  protected setTemlateData(key: string, value: string): void{
     this.renderTemplate = this.renderTemplate.replace(`{{__${key}__}}`,value)
   }
+  abstract render(pageNumber : number): void;
 }
+
+class Router{
+  routeTable: RouteInfo[];
+  defaultRoute: RouteInfo | null;
+  constructor() {
+    this.routeTable = [];
+    this.defaultRoute = null;
+    window.addEventListener('hashchange',this.route.bind(this))
+  }
+  setDefaultPage(page: View): void {
+    this.defaultRoute = {path: '',page}
+  }
+  addRoutePath(path: string, page: View): void {
+    this.routeTable.push({ path, page });
+  }
+  route() {
+    const routerPath = location.hash;
+    const PageNumber = Number(location.hash.substr(7) || 1)
+    if (routerPath === '' && this.defaultRoute) {
+      this.defaultRoute.page.render(PageNumber)
+    }
+    for (const routeInfo of this.routeTable) {
+      if (routerPath.indexOf(routeInfo.path) >= 0) {
+        routeInfo.page.render(PageNumber);
+        break
+      }
+    }
+  }
+}
+
 class NewsFeedView extends View{
   api: NewsFeedApi;
   feeds: NewsFeed[];
@@ -137,9 +173,18 @@ class NewsFeedView extends View{
     </div>
   </div>
     `; 
-    super(containerId,template)
+    super(containerId, template)
     this.api = new NewsFeedApi();
     this.feeds = [];
+
+  }
+  private makeFeeds(){
+  this.feeds.forEach((feed,index) => {
+      this.feeds[index].read = false;
+    } )
+  }
+  render(pageNumber : number) {
+    store.currentPage = pageNumber;
     if (store.feeds.has(store.currentPage)) {
       this.feeds = store.feeds.get(store.currentPage)??[]
     } else {
@@ -147,14 +192,6 @@ class NewsFeedView extends View{
       this.makeFeeds();
       store.feeds.set(store.currentPage,this.feeds)
     }
-  }
-  makeFeeds(){
-  this.feeds.forEach((feed,index) => {
-      this.feeds[index].read = false;
-    } )
-  }
-  render() {
-
     this.feeds.forEach(item => {
       const { id, title, comments_count, user, points, time_ago, read } = item;
       this.addHtml(
@@ -196,7 +233,7 @@ class NewsDetailView extends View{
                 <h1 class="font-extrabold">Hacker News</h1>
               </div>
               <div class="items-center justify-end">
-                <a href="#/page/{{__currentPage__}" class="text-gray-500">
+                <a href="#/page/{{__currentPage__}}" class="text-gray-500">
                   <i class="fa fa-times"></i>
                 </a>
               </div>
@@ -237,16 +274,16 @@ class NewsDetailView extends View{
     }
     return commentString.join('');
   }
-  render() {
-    const id = location.hash.substr(7);
+  render(pageNumber : number) {
     const api = new NewsDetailApi()
-    const newsContent = api.getData(id);
+    const newsContent = api.getData(String(pageNumber));
     const current_newsFeed : NewsFeed[] = store.feeds.get(store.currentPage)??[];
     current_newsFeed.forEach((feed) => {
-      if (feed.id === Number(id)) {
+      if (feed.id === Number(pageNumber)) {
         feed.read = true;
       }
     })
+    console.log(store.currentPage);
     this.setTemlateData('currentPage', String(store.currentPage));
     this.setTemlateData('title', newsContent.title);
     this.setTemlateData('content', newsContent.content);
@@ -257,18 +294,12 @@ class NewsDetailView extends View{
 
 
 
-function router() : void {
-  const routerPath = location.hash
-  if (routerPath === '') {
-    newsFeeds();
-  } else if (routerPath.indexOf('#/show/') >= 0){
-    newsDetail();
-  } else {
-    store.currentPage = Number(routerPath.substr(7));
-    newsFeeds();
-  }
+const router: Router = new Router();
+const newsFeedView = new NewsFeedView('root');
+const newsDetailView = new NewsDetailView('root');
 
-}
-window.addEventListener('hashchange',router)
 
-router();
+router.setDefaultPage(newsFeedView);
+router.addRoutePath('/page/', newsFeedView);
+router.addRoutePath('/show/', newsDetailView);
+router.route();
