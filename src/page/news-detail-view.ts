@@ -55,17 +55,16 @@ export default class NewsDetailView extends View{
       }
       return commentString.join('');
     }
-    render(pageNumber : number) {
+    async render(pageNumber : number) : Promise<void> {
       const api = new NewsDetailApi(CONTENT_URL.replace('@id', String(pageNumber)))
-      api.getDataWithPromise((data: NewsDetail) => {
-        const { title, content, comments } = data;
-        store.makeRead(pageNumber);
-        this.setTemlateData('currentPage', String(store.currentPage));
-        this.setTemlateData('title', title);
-        this.setTemlateData('content', content);
-        this.setTemlateData(`comments`, this.makeComment(comments));
-        this.updateView();
-      })
+      
+      const { title, content, comments } = await api.getData();
+      store.makeRead(pageNumber);
+      this.setTemlateData('currentPage', String(store.currentPage));
+      this.setTemlateData('title', title);
+      this.setTemlateData('content', content);
+      this.setTemlateData(`comments`, this.makeComment(comments));
+      this.updateView();
     }
   }
   
