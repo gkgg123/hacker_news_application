@@ -57,7 +57,7 @@ export default class NewsDetailView extends View{
     }
     render(pageNumber : number) {
       const api = new NewsDetailApi(CONTENT_URL.replace('@id', String(pageNumber)))
-      api.getData((data: NewsDetail) => {
+      api.getDataWithPromise((data: NewsDetail) => {
         const { title, content, comments } = data;
         store.makeRead(pageNumber);
         this.setTemlateData('currentPage', String(store.currentPage));
