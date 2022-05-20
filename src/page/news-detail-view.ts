@@ -1,5 +1,5 @@
 import View from '../core/view'
-import { NewsComment,NewsFeed } from '../types';
+import { NewsComment,NewsDetail,NewsFeed } from '../types';
 import { NewsDetailApi } from '../core/api';
 import { CONTENT_URL } from '../config';
 import {store} from '../core/store'
@@ -57,13 +57,15 @@ export default class NewsDetailView extends View{
     }
     render(pageNumber : number) {
       const api = new NewsDetailApi(CONTENT_URL.replace('@id', String(pageNumber)))
-      const newsContent = api.getData();
-      store.makeRead(pageNumber);
-      this.setTemlateData('currentPage', String(store.currentPage));
-      this.setTemlateData('title', newsContent.title);
-      this.setTemlateData('content', newsContent.content);
-      this.setTemlateData(`comments`, this.makeComment(newsContent.comments));
-      this.updateView();
+      api.getData((data: NewsDetail) => {
+        const { title, content, comments } = data;
+        store.makeRead(pageNumber);
+        this.setTemlateData('currentPage', String(store.currentPage));
+        this.setTemlateData('title', title);
+        this.setTemlateData('content', content);
+        this.setTemlateData(`comments`, this.makeComment(comments));
+        this.updateView();
+      })
     }
   }
   
