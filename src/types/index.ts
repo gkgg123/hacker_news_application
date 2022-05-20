@@ -1,9 +1,5 @@
 import View from '../core/view';
 
-export interface Store {
-    currentPage: number;
-    feeds: Map<number,NewsFeed[]>
-}
 export interface News {
     readonly id: number;
     readonly time_ago: string;

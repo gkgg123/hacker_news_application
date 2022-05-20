@@ -36,20 +36,15 @@ export default class NewsFeedView extends View{
       this.feeds = [];
       
     }
-    private makeFeeds(){
-      this.feeds.forEach((feed,index) => {
-        this.feeds[index].read = false;
-      } )
-    }
+
   render(pageNumber: number) {
     store.currentPage = pageNumber;
     this.api = new NewsFeedApi(NEWS_URL.replace('@currentPage', String(store.currentPage)));
-      if (store.feeds.has(store.currentPage)) {
-        this.feeds = store.feeds.get(store.currentPage)??[]
+      if (store.hasFeeds) {
+        this.feeds = store.currentfeeds
       } else {
         this.feeds = this.api.getData();
-        this.makeFeeds();
-        store.feeds.set(store.currentPage,this.feeds)
+        store.setFeeds = this.feeds;
       }
       this.feeds.forEach(item => {
         const { id, title, comments_count, user, points, time_ago, read } = item;
@@ -74,8 +69,8 @@ export default class NewsFeedView extends View{
       } 
       )
       this.setTemlateData('news_feed', this.getHtml());
-      this.setTemlateData('prev_page', String(store.currentPage > 1 ? store.currentPage - 1 : 1))
-      this.setTemlateData('next_page', String(store.currentPage + 1))
+      this.setTemlateData('prev_page', String(store.prevPage))
+      this.setTemlateData('next_page', String(store.nextPage))
       this.updateView()
     }
   }
