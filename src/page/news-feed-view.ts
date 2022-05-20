@@ -43,34 +43,40 @@ export default class NewsFeedView extends View{
       if (store.hasFeeds) {
         this.feeds = store.currentfeeds
       } else {
-        this.feeds = this.api.getData();
-        store.setFeeds = this.feeds;
-      }
-      this.feeds.forEach(item => {
-        const { id, title, comments_count, user, points, time_ago, read } = item;
-        this.addHtml(
-          `<div class="p-6 ${read ? 'bg-indigo-300' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
-        <div class="flex">
-          <div class="flex-auto">
-            <a href="#/show/${id}">${title}</a>  
-          </div>
-          <div class="text-center text-sm">
-            <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${comments_count}</div>
-          </div>
-        </div>
-        <div class="flex mt-3">
-          <div class="grid grid-cols-3 text-sm text-gray-500">
-            <div><i class="fas fa-user mr-1"></i>${user}</div>
-            <div><i class="fas fa-heart mr-1"></i>${points}</div>
-            <div><i class="far fa-clock mr-1"></i>${time_ago}</div>
-          </div>  
-        </div>
-      </div>`)
-      } 
-      )
-      this.setTemlateData('news_feed', this.getHtml());
-      this.setTemlateData('prev_page', String(store.prevPage))
-      this.setTemlateData('next_page', String(store.nextPage))
-      this.updateView()
+        this.api.getDataWithPromise((data: NewsFeed[]) => {
+          this.feeds = data;
+          store.setFeeds = this.feeds;
+          this.renderView();
+        });
     }
+    this.renderView();
+  }
+  renderView() {
+    this.feeds.forEach(item => {
+      const { id, title, comments_count, user, points, time_ago, read } = item;
+      this.addHtml(
+        `<div class="p-6 ${read ? 'bg-indigo-300' : 'bg-white'} mt-6 rounded-lg shadow-md transition-colors duration-500 hover:bg-green-100">
+      <div class="flex">
+        <div class="flex-auto">
+          <a href="#/show/${id}">${title}</a>  
+        </div>
+        <div class="text-center text-sm">
+          <div class="w-10 text-white bg-green-300 rounded-lg px-0 py-2">${comments_count}</div>
+        </div>
+      </div>
+      <div class="flex mt-3">
+        <div class="grid grid-cols-3 text-sm text-gray-500">
+          <div><i class="fas fa-user mr-1"></i>${user}</div>
+          <div><i class="fas fa-heart mr-1"></i>${points}</div>
+          <div><i class="far fa-clock mr-1"></i>${time_ago}</div>
+        </div>  
+      </div>
+    </div>`)
+    } 
+    )
+    this.setTemlateData('news_feed', this.getHtml());
+    this.setTemlateData('prev_page', String(store.prevPage))
+    this.setTemlateData('next_page', String(store.nextPage))
+    this.updateView()
+  }
   }
