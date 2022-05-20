@@ -58,12 +58,7 @@ export default class NewsDetailView extends View{
     render(pageNumber : number) {
       const api = new NewsDetailApi(CONTENT_URL.replace('@id', String(pageNumber)))
       const newsContent = api.getData();
-      const current_newsFeed : NewsFeed[] = store.feeds.get(store.currentPage)??[];
-      current_newsFeed.forEach((feed) => {
-        if (feed.id === Number(pageNumber)) {
-          feed.read = true;
-        }
-      })
+      store.makeRead(pageNumber);
       this.setTemlateData('currentPage', String(store.currentPage));
       this.setTemlateData('title', newsContent.title);
       this.setTemlateData('content', newsContent.content);
